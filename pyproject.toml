@@ -10,17 +10,18 @@ authors = [
 ]
 description = "A package to convert MIDI files to string instrument tabs."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "matplotlib==3.5.3",
-    "networkx==2.8.6",
-    "numpy==1.23.2",
-    "pretty_midi==0.2.9"
+    "matplotlib==3.9.4",
+    "networkx==3.4.2",
+    "numpy==1.26.4",
+    "pretty_midi==0.2.10",
+    "eel==0.18.1"
 ]
 
 [project.urls]

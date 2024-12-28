@@ -137,3 +137,7 @@ val_json/
 
 *.ipynb
 .vscode
+
+Include/
+Scripts/
+share/
