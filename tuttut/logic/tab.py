@@ -15,7 +15,7 @@ from time import time
 class Tab:
     """Tab object."""
 
-    def __init__(self, name, tuning, midi, output_dir=None, weights=None):
+    def __init__(self, name, tuning, midi, output_file=None, weights=None):
         """Constructor for the Tab object.
 
         Args:
@@ -35,7 +35,7 @@ class Tab:
         self.fretboard = Fretboard(tuning)
         self.weights = {"b": 1, "height": 1, "length": 1, "n_changed_strings": 1} if weights is None else weights
         self.timeline = self.build_timeline()
-        self.output_dir = output_dir
+        self.output_file = output_file
 
         self.populate()
 
@@ -245,8 +245,8 @@ class Tab:
 
         notes_str = self.to_string()
 
-        output_dir = "./tabs" if self.output_dir is None else self.output_dir
-        with open(Path(output_dir, self.name).with_suffix(".txt"), "w") as file:
+        output_file = Path(f"{self.name}").with_suffix(".txt") if self.output_file is None else self.output_file
+        with open(output_file, "w") as file:
             for string_notes in notes_str:
                 file.write(string_notes + "\n")
 
