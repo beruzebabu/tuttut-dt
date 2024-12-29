@@ -1,9 +1,9 @@
 import unittest
 import pretty_midi
 
-from tuttut import graph_utils
-from tuttut.theory import Note, Tuning
-from tuttut.fretboard import Fretboard
+from tuttut.logic import graph_utils
+from tuttut.logic.theory import Note, Tuning
+from tuttut.logic.fretboard import Fretboard
 
 
 class TestGraphUtils(unittest.TestCase):
@@ -128,3 +128,7 @@ class TestGraphUtils(unittest.TestCase):
                 Note(30)
             ]
         )
+
+
+if __name__ == '__main__':
+    unittest.main()

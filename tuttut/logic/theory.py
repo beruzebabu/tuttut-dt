@@ -1,7 +1,8 @@
-from enum import Enum
+from enum import Enum, IntEnum
 import numpy as np
 import tuttut.logic.midi_utils as midi_utils
 from pretty_midi import note_number_to_name, note_name_to_number
+import pretty_midi
 from collections import defaultdict
 
 
@@ -53,12 +54,28 @@ class Degree(Enum):  # Degree of a note enum
     Gsharp = "G#"
 
 
+class Diatonic:
+    BASE_INTERVAL = [True, False, True, False, True, True, False, True, False, True, False, True]
+
+    class Modes(IntEnum):
+        IONIAN = 0,
+        DORIAN = 2,
+        PHYRGIAN = 4,
+        LYDIAN = 5,
+        MIXOLYDIAN = 7,
+        AEOLIAN = 9,
+        LOCRIAN = 10
+
+        def from_str(string: str):
+            return Diatonic.Modes[string.strip().upper()]
+
+
 class Tuning:
     """Tuning object."""
     standard_tuning = ["E4", "B3", "G3", "D3", "A2", "E2"]
     standard_ukulele_tuning = ["A4", "E4", "C4", "G4"]
 
-    def __init__(self, strings=standard_tuning):
+    def __init__(self, strings=standard_tuning, diatonic=(False, Diatonic.Modes.IONIAN)):
         """Constructor for the Tuning object.
 
         Args:
@@ -67,6 +84,8 @@ class Tuning:
         self._strings = np.array([Note(note_name_to_number(note)) for note in strings])  # Thin to thick
         self.nstrings = len(strings)
         self.nfrets = 20
+        self.diatonic = diatonic[0]
+        self.mode = diatonic[1]
 
     @property
     def strings(self):
@@ -88,10 +107,24 @@ class Tuning:
             list: All possible notes for the specified fretboard parameters
         """
         res = []
+        scale = []
+        if self.diatonic:
+            for i in range(len(Diatonic.BASE_INTERVAL)):
+                s = Diatonic.BASE_INTERVAL[(self.mode+i) % len(Diatonic.BASE_INTERVAL)]
+                scale += [s]
         for string in self.strings:
             string_notes = []
-            for ifret in range(self.nfrets + 1):  # + 1 to take into account fret 0
-                string_notes.append(Note(string.pitch + ifret))
+            for ifret in range(string.pitch, string.pitch + (self.nfrets + 1)):  # + 1 to take into account fret 0
+
+                if self.diatonic:
+                    step = (ifret - string.pitch) % (len(scale))
+                    diatonic_step = scale[step]
+                    if not diatonic_step:
+                        continue
+
+                note = Note(ifret)
+                string_notes.append(note)
+
             res.append(string_notes)
 
         return res

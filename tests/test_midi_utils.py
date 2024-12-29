@@ -1,7 +1,7 @@
 import unittest
 import pretty_midi
 
-from tuttut import midi_utils
+from tuttut.logic import midi_utils
 
 
 class TestMidiUtils(unittest.TestCase):
@@ -116,3 +116,7 @@ class TestMidiUtils(unittest.TestCase):
 
     def test_quantize(self):
         pass
+
+
+if __name__ == '__main__':
+    unittest.main()
