@@ -55,6 +55,7 @@ class Degree(Enum):  # Degree of a note enum
 
 
 class Diatonic:
+    """Diatonic scales helper class"""
     BASE_INTERVAL = [True, False, True, False, True, True, False, True, False, True, False, True]
 
     class Modes(IntEnum):
@@ -74,8 +75,9 @@ class Tuning:
     """Tuning object."""
     standard_tuning = ["E4", "B3", "G3", "D3", "A2", "E2"]
     standard_ukulele_tuning = ["A4", "E4", "C4", "G4"]
+    notes_in_octave = 12
 
-    def __init__(self, strings=standard_tuning, diatonic=(False, Diatonic.Modes.IONIAN)):
+    def __init__(self, strings=standard_tuning, diatonic=(False, Diatonic.Modes.IONIAN), nfrets=20):
         """Constructor for the Tuning object.
 
         Args:
@@ -83,9 +85,9 @@ class Tuning:
         """
         self._strings = np.array([Note(note_name_to_number(note)) for note in strings])  # Thin to thick
         self.nstrings = len(strings)
-        self.nfrets = 20
         self.diatonic = diatonic[0]
         self.mode = diatonic[1]
+        self.nfrets = nfrets if not self.diatonic else int(nfrets * (self.notes_in_octave / Diatonic.BASE_INTERVAL.count(True)))
 
     @property
     def strings(self):
