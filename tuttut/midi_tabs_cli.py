@@ -19,6 +19,8 @@ def parse_args():
     parser.add_argument("source", metavar="src", type=Path, help="File(path) of MIDI file to convert")
     parser.add_argument("-t", "--target", metavar="target", type=Path, help="Target file(path)", default=None)
     parser.add_argument("-tu", "--tuning", metavar="tuning", type=str, help="Tuning in string form, from low to high. For example 'D4G4B4E5'", default=None)
+    parser.add_argument("-f", "--frets", metavar="frets", type=int, help="Amount of frets on instrument", default=20)
+    parser.add_argument("-s", "--split", metavar="split", type=int, help="Split bars into new line after x amount of measures", default=6)
     parser.add_argument("-dt", "--diatonic", help="If specified, uses diatonic scale", action="store_true")
     parser.add_argument("-dtm", "--diatonic-mode", metavar="diatonic_mode", type=str, help="If specified, uses specified diatonic mode. Defaults to Ionian (major) mode",
                         default=None, choices=Diatonic.Modes._member_names_)
@@ -31,6 +33,8 @@ if __name__ == "__main__":
     target: Path = args.target if args.target is not None else Path(f"./{args.source.with_suffix(".txt")}")
     diatonic: bool = args.diatonic
     diatonic_mode: Diatonic.Modes = Diatonic.Modes.from_str(args.diatonic_mode) if args.diatonic_mode is not None else Diatonic.Modes.IONIAN
+    frets: int = args.frets if args.frets is not None else 20
+    split_by: int = args.split if args.split is not None else 6
     tuning: list = []
     if args.tuning is not None and len(args.tuning) % 2 == 0:
         tuning = [args.tuning[i*2:(i*2)+2] for i in range(0, len(args.tuning) // 2)]
@@ -49,9 +53,9 @@ if __name__ == "__main__":
         if diatonic:
             print(f"In {diatonic_mode.name} diatonic mode")
         f = pretty_midi.PrettyMIDI(source.absolute().as_posix())
-        tab = Tab(source.stem, Tuning(strings=tuning, diatonic=(diatonic, diatonic_mode)), f, weights=weights, output_file=target)
+        tab = Tab(source.stem, Tuning(strings=tuning, diatonic=(diatonic, diatonic_mode), nfrets=frets), f, weights=weights, output_file=target)
         # tab = Tab(file.stem, Tuning([Note(69), Note(64), Note(60), Note(67)]), f, weights=weights)
-        tab.to_ascii()
+        tab.to_ascii(split_by=split_by)
         print(f"Time taken: {round(time() - start, 2)}s")
 
     except Exception as e:
