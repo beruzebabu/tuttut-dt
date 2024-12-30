@@ -8,6 +8,7 @@ from tuttut.logic.graph_utils import *
 import networkx as nx
 import json
 import os
+import functools
 from pathlib import Path
 from time import time
 
@@ -203,23 +204,36 @@ class Tab:
         """
         res = []
         for string in self.tuning.strings:
-            header = string.degree
-            header += "||" if len(header) > 1 else " ||"
-            res.append(header)
-
+            res.append("")
         for measure in self.tab["measures"]:
-            for ievent, event in enumerate(measure["events"]):
-                if "notes" in event:
-                    for note in event["notes"]:
-                        string, fret = note["string"], note["fret"]
-                        res[string] += str(fret)
+            events = [event for event in measure["events"] if "notes" in event]
+            if len(events) == 0:
+                for istring in range(self.nstrings):
+                    res[istring] += "-" * 16
 
-                    next_event_timing = measure["events"][ievent +
-                                                          1]["measure_timing"] if ievent < len(measure["events"]) - 1 else 1.0
-                    dashes_to_add = max(1, math.floor((next_event_timing - event["measure_timing"]) * 16))
+                for istring in range(self.nstrings):
+                    res[istring] += "|"
+                continue
 
-                    res = fill_measure_str(res)
+            for ievent, event in enumerate(events):
+                if ievent == 0:
+                    next_event_timing = event["measure_timing"]
+                    dashes_to_add = round((next_event_timing - 0) * 16)
+                    for istring in range(self.nstrings):
+                        res[istring] += "-" * dashes_to_add
 
+                next_event_timing = events[ievent + 1]["measure_timing"] if ievent < (len(events) - 1) else 1.0
+                dashes_to_add = round((next_event_timing - event["measure_timing"]) * 16)
+
+                for note in event["notes"]:
+                    string, fret = note["string"], note["fret"]
+                    res[string] += str(fret)
+                if dashes_to_add:
+                    dashes_to_add -= 1
+
+                res = fill_measure_str(res)
+
+                if dashes_to_add:
                     for istring in range(self.nstrings):
                         res[istring] += "-" * dashes_to_add
 
@@ -238,17 +252,28 @@ class Tab:
         with open(os.path.join("json", self.name + ".json"), "w") as outfile:
             outfile.write(json_object)
 
-    def to_ascii(self):
+    def to_ascii(self, split_by=6):
         """Exports the tab to a text file."""
         if self.tab is None:
             return
 
-        notes_str = self.to_string()
+        notes_str: list = self.to_string()
+        tabs = []
+        for i, string in enumerate(notes_str):
+            bars = string.split("|")
+            note_tab = []
+            header = f"{self.tuning.strings[i].degree}||" if len(self.tuning.strings[i].degree) > 1 else f"{self.tuning.strings[i].degree} ||"
+            for z in range(0, len(bars), split_by):
+                merged_measures = functools.reduce(lambda x, y: f"{x}|{y}", bars[z:z+split_by], "")
+                note_tab += [f"{header}{merged_measures}|"]
+            tabs += [note_tab]
 
         output_file = Path(f"{self.name}").with_suffix(".txt") if self.output_file is None else self.output_file
         with open(output_file, "w") as file:
-            for string_notes in notes_str:
-                file.write(string_notes + "\n")
+            for i in range(len(tabs[0])):
+                for tab in tabs:
+                    file.write(tab[i] + "\n")
+                file.write("\n")
 
     def __repr__(self):
         """Used to print out the tab.
